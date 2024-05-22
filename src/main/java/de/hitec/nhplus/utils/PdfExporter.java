@@ -24,16 +24,10 @@ public class PdfExporter {
      */
     public static void exportPatientToPdf(Patient patient, String dest) {
         try {
-            // Initialize PDF writer
             PdfWriter writer = new PdfWriter(dest);
-
-            // Initialize PDF document
             PdfDocument pdf = new PdfDocument(writer);
-
-            // Initialize document
             Document document = new Document(pdf);
 
-            // Add content to the document
             document.add(new Paragraph("Patient Information"));
             document.add(new Paragraph("Patient Number: " + patient.getPid()));
             document.add(new Paragraph("Name: " + patient.getFirstName()));
@@ -42,7 +36,6 @@ public class PdfExporter {
             document.add(new Paragraph("Care level: " + patient.getCareLevel()));
             document.add(new Paragraph("Room: " + patient.getRoomNumber()));
 
-            // Close document
             document.close();
 
             System.out.println("PDF created successfully!");
@@ -59,16 +52,10 @@ public class PdfExporter {
      */
     public static void exportTreatmentToPdf(Treatment treatment, String dest) {
         try {
-            // Initialize PDF writer
             PdfWriter writer = new PdfWriter(dest);
-
-            // Initialize PDF document
             PdfDocument pdf = new PdfDocument(writer);
-
-            // Initialize document
             Document document = new Document(pdf);
 
-            // Add content to the document
             document.add(new Paragraph("Patient Information"));
             document.add(new Paragraph("Treatment Number: " + treatment.getTid()));
             document.add(new Paragraph("Patient Number: " + treatment.getPid()));
@@ -78,7 +65,6 @@ public class PdfExporter {
             document.add(new Paragraph("End: " + treatment.getEnd()));
             document.add(new Paragraph("Description: " + treatment.getDescription()));
 
-            // Close document
             document.close();
 
             System.out.println("PDF created successfully!");
