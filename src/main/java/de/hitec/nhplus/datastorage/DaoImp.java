@@ -28,6 +28,7 @@ public abstract class DaoImp<T> implements Dao<T> {
 
     @Override
     public List<T> readAll() throws SQLException {
+        System.out.println(getReadAllStatement());
         return getListFromResultSet(getReadAllStatement().executeQuery());
     }
 

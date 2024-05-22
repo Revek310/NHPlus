@@ -1,13 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="500.0" prefWidth="855.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane prefHeight="526.0" prefWidth="855.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.hitec.nhplus.controller.AllCaregiverController">
    <children>
-      <TableView fx:id="tableView" editable="true" layoutX="31.0" layoutY="40.0" AnchorPane.bottomAnchor="70.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="80.0">
+      <TableView fx:id="tableView" editable="true" layoutX="31.0" layoutY="103.0" prefHeight="363.0" prefWidth="825.0" AnchorPane.bottomAnchor="70.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="93.0">
         <columns>
             <TableColumn fx:id="colID" maxWidth="1200.0" minWidth="5.0" prefWidth="5.0" text="ID" />
           <TableColumn fx:id="colSurname" maxWidth="7500.0" minWidth="20.0" prefWidth="100.0" text="Nachname" />
@@ -18,15 +27,28 @@
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
          </columnResizePolicy>
       </TableView>
-      <HBox layoutX="420.0" layoutY="450.0" spacing="10.0" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0">
+      <GridPane layoutX="15.0" layoutY="460.0" prefHeight="61.0" prefWidth="825.0" AnchorPane.bottomAnchor="1.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0">
+         <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="770.0" minWidth="10.0" prefWidth="728.0" />
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="104.0" minWidth="10.0" prefWidth="97.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints maxHeight="54.0" minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="64.0" minHeight="10.0" prefHeight="41.0" vgrow="SOMETIMES" />
+         </rowConstraints>
          <children>
-            <TextField fx:id="txfSurname" prefHeight="26.0" prefWidth="220.0" promptText="Nachname" />
-            <TextField fx:id="txfFirstname" prefHeight="26.0" prefWidth="220.0" promptText="Vorname" />
-            <TextField fx:id="txfTelephone" prefWidth="160.0" promptText="Telefonnummer" />
-            <Button fx:id="btnAdd" mnemonicParsing="false" prefWidth="90.0" text="Hinzufügen" />
-            <Button fx:id="btnDelete" mnemonicParsing="false" prefWidth="90.0" text="Löschen" />
+            <HBox prefHeight="60.0" prefWidth="825.0" spacing="10.0">
+               <children>
+                  <TextField fx:id="txfSurname" prefHeight="26.0" prefWidth="220.0" promptText="Nachname" />
+                  <TextField fx:id="txfFirstname" prefHeight="26.0" prefWidth="220.0" promptText="Vorname" />
+                  <TextField fx:id="txfTelephone" prefWidth="160.0" promptText="Telefonnummer" />
+                  <Button fx:id="btnAdd" mnemonicParsing="false" prefWidth="90.0" text="Hinzufügen" />
+               </children>
+            </HBox>
+            <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#handleDelete" prefHeight="25.0" prefWidth="112.0" text="Löschen" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Button mnemonicParsing="false" onAction="#onLock" prefHeight="25.0" prefWidth="113.0" text="Sperren" GridPane.columnIndex="1" />
          </children>
-      </HBox>
+      </GridPane>
       <HBox alignment="TOP_CENTER" layoutX="10.0" layoutY="10.0" prefWidth="200.0" spacing="25.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
          <children>
             <Label alignment="CENTER" contentDisplay="CENTER" minWidth="400.0" text="Pfleger/innen" textAlignment="CENTER">
@@ -36,6 +58,8 @@
             </Label>
          </children>
       </HBox>
+      <TextField layoutX="14.0" layoutY="68.0" onInputMethodTextChanged="#onSearchChange" prefHeight="25.0" prefWidth="306.0" />
+      <CheckBox fx:id="CheckBoxSearchLocked" layoutX="332.0" layoutY="72.0" mnemonicParsing="false" onMouseClicked="#onSearchChange" text="gesperrte anzeigen" />
    </children>
    <padding>
       <Insets top="10.0" />

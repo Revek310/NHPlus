@@ -5,6 +5,8 @@ import de.hitec.nhplus.utils.DateConverter;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 /**
@@ -31,16 +33,18 @@ public class PatientDao extends DaoImp<Patient> {
     @Override
     protected PreparedStatement getCreateStatement(Patient patient) {
         PreparedStatement preparedStatement = null;
+
         try {
-            final String SQL = "INSERT INTO patient (firstname, surname, dateOfBirth, carelevel, roomnumber, assets) " +
-                    "VALUES (?, ?, ?, ?, ?, ?)";
+            final String SQL = "INSERT INTO patient (firstname, surname, dateOfBirth, carelevel, roomnumber, locked, last_updated) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)";
             preparedStatement = this.connection.prepareStatement(SQL);
             preparedStatement.setString(1, patient.getFirstName());
             preparedStatement.setString(2, patient.getSurname());
             preparedStatement.setString(3, patient.getDateOfBirth());
             preparedStatement.setString(4, patient.getCareLevel());
             preparedStatement.setString(5, patient.getRoomNumber());
-            preparedStatement.setString(6, patient.getAssets());
+            preparedStatement.setString(6, patient.isLocked());
+            preparedStatement.setString(7, patient.getLastUpdated());
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -81,7 +85,9 @@ public class PatientDao extends DaoImp<Patient> {
                 DateConverter.convertStringToLocalDate(result.getString(4)),
                 result.getString(5),
                 result.getString(6),
-                result.getString(7));
+                result.getString(7),
+                DateConverter.convertStringToLocalDate(result.getString(8)));
+
     }
 
     /**
@@ -94,6 +100,7 @@ public class PatientDao extends DaoImp<Patient> {
         PreparedStatement statement = null;
         try {
             final String SQL = "SELECT * FROM patient";
+            System.out.println("SQL: " + SQL);
             statement = this.connection.prepareStatement(SQL);
         } catch (SQLException exception) {
             exception.printStackTrace();
@@ -113,9 +120,10 @@ public class PatientDao extends DaoImp<Patient> {
         ArrayList<Patient> list = new ArrayList<>();
         while (result.next()) {
             LocalDate date = DateConverter.convertStringToLocalDate(result.getString(4));
+            LocalDate updateDate = DateConverter.convertStringToLocalDate(result.getString(8));
             Patient patient = new Patient(result.getInt(1), result.getString(2),
                     result.getString(3), date,
-                    result.getString(5), result.getString(6), result.getString(7));
+                    result.getString(5), result.getString(6),result.getString(7),updateDate);
             list.add(patient);
         }
         return list;
@@ -130,6 +138,8 @@ public class PatientDao extends DaoImp<Patient> {
      */
     @Override
     protected PreparedStatement getUpdateStatement(Patient patient) {
+
+        LocalDate now = LocalDate.now();
         PreparedStatement preparedStatement = null;
         try {
             final String SQL =
@@ -139,7 +149,8 @@ public class PatientDao extends DaoImp<Patient> {
                             "dateOfBirth = ?, " +
                             "carelevel = ?, " +
                             "roomnumber = ?, " +
-                            "assets = ? " +
+                            "locked = ?, " +
+                            "last_updated = ?" +
                             "WHERE pid = ?";
             preparedStatement = this.connection.prepareStatement(SQL);
             preparedStatement.setString(1, patient.getFirstName());
@@ -147,8 +158,9 @@ public class PatientDao extends DaoImp<Patient> {
             preparedStatement.setString(3, patient.getDateOfBirth());
             preparedStatement.setString(4, patient.getCareLevel());
             preparedStatement.setString(5, patient.getRoomNumber());
-            preparedStatement.setString(6, patient.getAssets());
-            preparedStatement.setLong(7, patient.getPid());
+            preparedStatement.setString(6, patient.isLocked());
+            preparedStatement.setString(7, DateConverter.convertLocalDateToString(now));
+            preparedStatement.setLong(8, patient.getPid());
         } catch (SQLException exception) {
             exception.printStackTrace();
         }

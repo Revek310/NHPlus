@@ -1,8 +1,10 @@
 package de.hitec.nhplus.controller;
 
+import de.hitec.nhplus.datastorage.CaregiverDao;
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.PatientDao;
 import de.hitec.nhplus.datastorage.TreatmentDao;
+import de.hitec.nhplus.model.Caregiver;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
@@ -22,6 +24,15 @@ public class TreatmentController {
     private Label labelCareLevel;
 
     @FXML
+    private Label labelCaregiverName;
+
+    @FXML
+    private Label labelCaregiverTelephone;
+
+    @FXML
+    private Label labelCaregiverID;
+
+    @FXML
     private TextField textFieldBegin;
 
     @FXML
@@ -39,14 +50,17 @@ public class TreatmentController {
     private AllTreatmentController controller;
     private Stage stage;
     private Patient patient;
+    private Caregiver caregiver;
     private Treatment treatment;
 
     public void initializeController(AllTreatmentController controller, Stage stage, Treatment treatment) {
         this.stage = stage;
         this.controller= controller;
         PatientDao pDao = DaoFactory.getDaoFactory().createPatientDAO();
+        CaregiverDao cDao = DaoFactory.getDaoFactory().createCaregiverDAO();
         try {
             this.patient = pDao.read((int) treatment.getPid());
+            this.caregiver = cDao.read((int) treatment.getCid());
             this.treatment = treatment;
             showData();
         } catch (SQLException exception) {
@@ -56,6 +70,9 @@ public class TreatmentController {
 
     private void showData(){
         this.labelPatientName.setText(patient.getSurname()+", "+patient.getFirstName());
+        this.labelCaregiverName.setText(caregiver.getSurname()+", "+caregiver.getFirstName());
+        this.labelCaregiverTelephone.setText("Telefon: " + caregiver.getTelephone());
+        this.labelCaregiverID.setText("" + caregiver.getCid());
         this.labelCareLevel.setText(patient.getCareLevel());
         LocalDate date = DateConverter.convertStringToLocalDate(treatment.getDate());
         this.datePicker.setValue(date);

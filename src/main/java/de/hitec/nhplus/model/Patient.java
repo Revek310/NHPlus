@@ -1,10 +1,12 @@
 package de.hitec.nhplus.model;
 
 import de.hitec.nhplus.utils.DateConverter;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +18,35 @@ public class Patient extends Person {
     private final SimpleStringProperty dateOfBirth;
     private final SimpleStringProperty careLevel;
     private final SimpleStringProperty roomNumber;
-    private final SimpleStringProperty assets;
+
+
+    public String getLastUpdated() {
+        return lastUpdated.get();
+    }
+
+    public SimpleStringProperty lastUpdatedProperty() {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated(String lastUpdated) {
+        this.lastUpdated.set(lastUpdated);
+    }
+
+    private final SimpleStringProperty lastUpdated;
+
+    public String isLocked() {
+        return locked.get();
+    }
+
+    public SimpleStringProperty lockedProperty() {
+        return locked;
+    }
+
+    public void setLocked(String locked) {
+        this.locked.set(locked);
+    }
+
+    private final SimpleStringProperty locked;
     private final List<Treatment> allTreatments = new ArrayList<>();
 
     /**
@@ -28,14 +58,17 @@ public class Patient extends Person {
      * @param dateOfBirth Date of birth of the patient.
      * @param careLevel Care level of the patient.
      * @param roomNumber Room number of the patient.
-     * @param assets Assets of the patient.
+     * @param locked true for patients that aren't part of the facility anymore
+     * @param lastUpdated date of the last change.
+
      */
-    public Patient(String firstName, String surname, LocalDate dateOfBirth, String careLevel, String roomNumber, String assets) {
+    public Patient(String firstName, String surname, LocalDate dateOfBirth, String careLevel, String roomNumber, String locked, LocalDate lastUpdated) {
         super(firstName, surname);
         this.dateOfBirth = new SimpleStringProperty(DateConverter.convertLocalDateToString(dateOfBirth));
         this.careLevel = new SimpleStringProperty(careLevel);
         this.roomNumber = new SimpleStringProperty(roomNumber);
-        this.assets = new SimpleStringProperty(assets);
+        this.locked = new SimpleStringProperty(locked);
+        this.lastUpdated = new SimpleStringProperty(DateConverter.convertLocalDateToString(lastUpdated));
     }
 
     /**
@@ -48,15 +81,17 @@ public class Patient extends Person {
      * @param dateOfBirth Date of birth of the patient.
      * @param careLevel Care level of the patient.
      * @param roomNumber Room number of the patient.
-     * @param assets Assets of the patient.
+     * @param locked true for patients that aren't part of the facility anymore
+     * @param lastUpdated date of the last change.
      */
-    public Patient(long pid, String firstName, String surname, LocalDate dateOfBirth, String careLevel, String roomNumber, String assets) {
+    public Patient(long pid, String firstName, String surname, LocalDate dateOfBirth, String careLevel, String roomNumber, String locked, LocalDate lastUpdated) {
         super(firstName, surname);
         this.pid = new SimpleLongProperty(pid);
         this.dateOfBirth = new SimpleStringProperty(DateConverter.convertLocalDateToString(dateOfBirth));
         this.careLevel = new SimpleStringProperty(careLevel);
         this.roomNumber = new SimpleStringProperty(roomNumber);
-        this.assets = new SimpleStringProperty(assets);
+        this.locked = new SimpleStringProperty(locked);
+        this.lastUpdated = new SimpleStringProperty(DateConverter.convertLocalDateToString(lastUpdated));
     }
 
     public long getPid() {
@@ -109,17 +144,6 @@ public class Patient extends Person {
         this.roomNumber.set(roomNumber);
     }
 
-    public String getAssets() {
-        return assets.get();
-    }
-
-    public SimpleStringProperty assetsProperty() {
-        return assets;
-    }
-
-    public void setAssets(String assets) {
-        this.assets.set(assets);
-    }
 
     /**
      * Adds a treatment to the list of treatments, if the list does not already contain the treatment.
@@ -142,7 +166,6 @@ public class Patient extends Person {
                 "\nBirthday: " + this.dateOfBirth +
                 "\nCarelevel: " + this.careLevel +
                 "\nRoomnumber: " + this.roomNumber +
-                "\nAssets: " + this.assets +
                 "\n";
     }
 }

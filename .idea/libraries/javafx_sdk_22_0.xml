@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="javafx-sdk-22.0">
+    <CLASSES>
+      <root url="file://$USER_HOME$/OneDrive - C. Melchers GmbH &amp; Co. KG/Desktop/javafx-sdk-22.0.1/lib" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$USER_HOME$/OneDrive - C. Melchers GmbH &amp; Co. KG/Desktop/javafx-sdk-22.0.1" />
+    </SOURCES>
+    <jarDirectory url="file://$USER_HOME$/OneDrive - C. Melchers GmbH &amp; Co. KG/Desktop/javafx-sdk-22.0.1/lib" recursive="false" />
+    <jarDirectory url="file://$USER_HOME$/OneDrive - C. Melchers GmbH &amp; Co. KG/Desktop/javafx-sdk-22.0.1" recursive="false" type="SOURCES" />
+  </library>
+</component>

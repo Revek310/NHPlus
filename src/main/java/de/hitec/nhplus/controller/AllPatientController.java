@@ -2,22 +2,27 @@ package de.hitec.nhplus.controller;
 
 import de.hitec.nhplus.datastorage.DaoFactory;
 import de.hitec.nhplus.datastorage.PatientDao;
+import de.hitec.nhplus.utils.PdfExporter;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import de.hitec.nhplus.model.Patient;
 import de.hitec.nhplus.utils.DateConverter;
+import de.hitec.nhplus.utils.ConfirmDeletion;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.File;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 
 /**
@@ -45,12 +50,15 @@ public class AllPatientController {
 
     @FXML
     private TableColumn<Patient, String> columnRoomNumber;
-
     @FXML
-    private TableColumn<Patient, String> columnAssets;
+    private TableColumn<Patient, String> columnLastUpdated;
+
 
     @FXML
     private Button buttonDelete;
+
+    @FXML
+    private Button btnLock;
 
     @FXML
     private Button buttonAdd;
@@ -71,9 +79,11 @@ public class AllPatientController {
     private TextField textFieldRoomNumber;
 
     @FXML
-    private TextField textFieldAssets;
+    private CheckBox CheckBoxSearchLocked;
 
-    private final ObservableList<Patient> patients = FXCollections.observableArrayList();
+
+    private final ArrayList<Patient> patients = new ArrayList<>();
+    private ObservableList<Patient> patientsModel = FXCollections.observableArrayList();
     private PatientDao dao;
 
     /**
@@ -81,7 +91,7 @@ public class AllPatientController {
      * after loading an FXML-File. At this point of the lifecycle of the Controller, the fields can be accessed and
      * configured.
      */
-    public void initialize() {
+    public void initialize() throws SQLException {
         this.readAllAndShowInTableView();
 
         this.columnId.setCellValueFactory(new PropertyValueFactory<>("pid"));
@@ -103,16 +113,17 @@ public class AllPatientController {
         this.columnRoomNumber.setCellValueFactory(new PropertyValueFactory<>("roomNumber"));
         this.columnRoomNumber.setCellFactory(TextFieldTableCell.forTableColumn());
 
-        this.columnAssets.setCellValueFactory(new PropertyValueFactory<>("assets"));
-        this.columnAssets.setCellFactory(TextFieldTableCell.forTableColumn());
+        this.columnLastUpdated.setCellValueFactory(new PropertyValueFactory<>("lastUpdated"));
+        this.columnLastUpdated.setCellFactory(TextFieldTableCell.forTableColumn());
+
 
         //Anzeigen der Daten
-        this.tableView.setItems(this.patients);
+        this.tableView.setItems(this.patientsModel);
 
         this.buttonDelete.setDisable(true);
         this.tableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Patient>() {
             @Override
-            public void changed(ObservableValue<? extends Patient> observableValue, Patient oldPatient, Patient newPatient) {;
+            public void changed(ObservableValue<? extends Patient> observableValue, Patient oldPatient, Patient newPatient) {
                 AllPatientController.this.buttonDelete.setDisable(newPatient == null);
             }
         });
@@ -125,7 +136,18 @@ public class AllPatientController {
         this.textFieldDateOfBirth.textProperty().addListener(inputNewPatientListener);
         this.textFieldCareLevel.textProperty().addListener(inputNewPatientListener);
         this.textFieldRoomNumber.textProperty().addListener(inputNewPatientListener);
-        this.textFieldAssets.textProperty().addListener(inputNewPatientListener);
+
+        //deletion of 30 years old patient data
+        for(Patient patient : patients){
+            if(ChronoUnit.YEARS.between( DateConverter.convertStringToLocalDate(patient.getLastUpdated()),LocalDate.now()) > 30){
+                try {
+                    this.dao.deleteById(patient.getPid());
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
     }
 
     /**
@@ -178,21 +200,11 @@ public class AllPatientController {
      * @param event Event including the changed object and the change.
      */
     @FXML
-    public void handleOnEditRoomNumber(TableColumn.CellEditEvent<Patient, String> event){
+    public void handleOnEditRoomNumber(TableColumn.CellEditEvent<Patient, String> event) {
         event.getRowValue().setRoomNumber(event.getNewValue());
         this.doUpdate(event);
     }
 
-    /**
-     * When a cell of the column with assets was changed, this method will be called, to persist the change.
-     *
-     * @param event Event including the changed object and the change.
-     */
-    @FXML
-    public void handleOnEditAssets(TableColumn.CellEditEvent<Patient, String> event){
-        event.getRowValue().setAssets(event.getNewValue());
-        this.doUpdate(event);
-    }
 
     /**
      * Updates a patient by calling the method <code>update()</code> of {@link PatientDao}.
@@ -207,6 +219,39 @@ public class AllPatientController {
         }
     }
 
+
+    /**
+     * When the export button is pressed this method will be called.
+     * This method saves a database entry as a pdf in a destination chosen with a file chooser dialog.
+     */
+    public void handleExport() {
+
+        Patient selectedItem = this.tableView.getSelectionModel().getSelectedItem();
+        if (selectedItem == null) {
+            return;
+        }
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save PDF");
+
+        // Show save dialog
+        fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("PDF", "pdf"));
+        int userSelection = fileChooser.showSaveDialog(null);
+
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
+
+            String filePath = fileToSave.getAbsolutePath();
+            if (!filePath.toLowerCase().endsWith(".pdf")) {
+                filePath += ".pdf";
+            }
+
+            // Export the patient data to the selected file
+            PdfExporter.exportPatientToPdf(selectedItem, filePath);
+        }
+    }
+
+
     /**
      * Reloads all patients to the table by clearing the list of all patients and filling it again by all persisted
      * patients, delivered by {@link PatientDao}.
@@ -216,6 +261,7 @@ public class AllPatientController {
         this.dao = DaoFactory.getDaoFactory().createPatientDAO();
         try {
             this.patients.addAll(this.dao.readAll());
+            filter();
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -228,13 +274,17 @@ public class AllPatientController {
      */
     @FXML
     public void handleDelete() {
-        Patient selectedItem = this.tableView.getSelectionModel().getSelectedItem();
-        if (selectedItem != null) {
-            try {
-                DaoFactory.getDaoFactory().createPatientDAO().deleteById(selectedItem.getPid());
-                this.tableView.getItems().remove(selectedItem);
-            } catch (SQLException exception) {
-                exception.printStackTrace();
+
+        if(ConfirmDeletion.showConfirmationDialog()) {
+            Patient selectedItem = this.tableView.getSelectionModel().getSelectedItem();
+            if (selectedItem != null) {
+                try {
+                    DaoFactory.getDaoFactory().createPatientDAO().deleteById(selectedItem.getPid());
+                    patients.remove(selectedItem);
+                    filter();
+                } catch (SQLException exception) {
+                    exception.printStackTrace();
+                }
             }
         }
     }
@@ -252,9 +302,12 @@ public class AllPatientController {
         LocalDate date = DateConverter.convertStringToLocalDate(birthday);
         String careLevel = this.textFieldCareLevel.getText();
         String roomNumber = this.textFieldRoomNumber.getText();
-        String assets = this.textFieldAssets.getText();
+        String locked = "";
+
+        LocalDate now = LocalDate.now();
+
         try {
-            this.dao.create(new Patient(firstName, surname, date, careLevel, roomNumber, assets));
+            this.dao.create(new Patient(firstName, surname, date, careLevel, roomNumber, locked, now));
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
@@ -271,7 +324,6 @@ public class AllPatientController {
         this.textFieldDateOfBirth.clear();
         this.textFieldCareLevel.clear();
         this.textFieldRoomNumber.clear();
-        this.textFieldAssets.clear();
     }
 
     private boolean areInputDataValid() {
@@ -285,6 +337,47 @@ public class AllPatientController {
 
         return !this.textFieldFirstName.getText().isBlank() && !this.textFieldSurname.getText().isBlank() &&
                 !this.textFieldDateOfBirth.getText().isBlank() && !this.textFieldCareLevel.getText().isBlank() &&
-                !this.textFieldRoomNumber.getText().isBlank() && !this.textFieldAssets.getText().isBlank();
+                !this.textFieldRoomNumber.getText().isBlank();
     }
+
+
+    /**
+     * filters out the locked/unlisted patients, if the locked checkbox is not ticked
+     */
+    public void filter() {
+        patientsModel.clear();
+        patientsModel.addAll(FXCollections.observableArrayList(patients));
+        Iterator<Patient> iterator = patientsModel.iterator();
+        Patient element;
+        if (!CheckBoxSearchLocked.isSelected()) {
+            while (iterator.hasNext()) {
+                element = iterator.next();
+                if (element.isLocked().equals("x")) {
+                    iterator.remove();
+                }
+            }
+        }
+    }
+
+    /**
+     * is triggered when the lock button is pressed.
+     * toggles the locked property.
+     */
+    public void onLock(){
+        Patient selectedItem = this.tableView.getSelectionModel().getSelectedItem();
+        if (selectedItem != null) {
+            try {
+                if (selectedItem.isLocked().equals("x")) {
+                    selectedItem.setLocked("");
+                } else {
+                    selectedItem.setLocked("x");
+                }
+                DaoFactory.getDaoFactory().createPatientDAO().update(selectedItem);
+                filter();
+            } catch (SQLException exception) {
+                exception.printStackTrace();
+            }
+        }
+    }
+
 }
